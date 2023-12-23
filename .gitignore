@@ -71,3 +71,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Assets/_AKTools.meta
+Assets/_AKTools/_Settings.meta
+Assets/_AKTools/_Settings/Rainbow Hierarchy Setting.asset
+Assets/_AKTools/_Settings/Rainbow Hierarchy Setting.asset.meta
+Assets/_AKTools/HierarchyRainbow.dll
+Assets/_AKTools/HierarchyRainbow.dll.meta

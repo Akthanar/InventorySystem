@@ -20,12 +20,12 @@ public class Inventory : MonoBehaviour
 
 
 
-    [SerializeField] private ButtonSlot _slotHover;
-    [SerializeField] private string _name;
-    // clicked slot
-    public ButtonSlot newSlot { get => _slotHover; set { _slotHover = value; _name = value.transform.parent.name; } }
 
-    public byte daggingAmount = 0;
+    // clicked slot
+    public ButtonSlot newSlot;
+    // visualized slot
+    public ButtonSlot infoSlot;
+
 
 
 
@@ -125,11 +125,7 @@ public class Inventory : MonoBehaviour
 
         // memorize current action
         currentAction = EventAction.click;
-
-        // ...and clicked slot
-        //this.slot = slot;
     }
-
 
 
     /// <summary> try to drag item from slot </summary>
@@ -152,7 +148,6 @@ public class Inventory : MonoBehaviour
     }
 
 
-
     private void Update ()
     {
         if (Input.GetMouseButtonUp(0) && currentAction == EventAction.drag)
@@ -167,7 +162,6 @@ public class Inventory : MonoBehaviour
     }
 
 
-
     public void ReleaseOnSlot(ButtonSlot old_slot)
     {
         print("Released " + old_slot.transform.parent.name + " on " + newSlot.transform.parent.name);
@@ -178,8 +172,13 @@ public class Inventory : MonoBehaviour
             // if mouse not moved since click, open info panel
             case EventAction.click:
             {
+                // store slot reference
+                infoSlot = old_slot;
+
+                // open the info panel
                 OpenInfoPanel(old_slot.item);
                 
+                // set state to none
                 currentAction = EventAction.none;
 
                 break;
@@ -192,13 +191,11 @@ public class Inventory : MonoBehaviour
                 // check if dropped on the same slot where drag started
                 if (old_slot.gameObject == newSlot.gameObject)
                 {
-        print("IF " + old_slot.transform.parent.name + " = " + newSlot.transform.parent.name);
                     // cancel dragging action
                     CancelDraggingAction();
                 }
                 else if (newSlot.isEmpty)
                 {
-        print("ELSE IF");
                     // place dragged item in the new slot
                     newSlot.SetItem(old_slot.item, old_slot.amount);
 
@@ -207,7 +204,6 @@ public class Inventory : MonoBehaviour
                 }
                 else // swap items in slots
                 {
-        print("ELSE");
                     // store new item and amount
                     Item item = newSlot.item;
                     byte amount = newSlot.amount;
@@ -229,7 +225,6 @@ public class Inventory : MonoBehaviour
             default: break;
         }
     }
-
 
 
     public void CancelDraggingAction()
@@ -262,7 +257,6 @@ public class Inventory : MonoBehaviour
         infoFrame.color = infoFrameColors[rarity];
         infoBackground.color = infoIconColors[rarity];
     }
-
 
 
     /// <summary> method to call when player pickup an object </summary>
@@ -306,5 +300,16 @@ public class Inventory : MonoBehaviour
                 return;
             }
         }
+    }
+
+
+    /// <summary > method to call when player drop an object </summary>
+    /// <param name="amount"> default amount 0 (= all)</param>
+    public void DropItem(int amount = 0)
+    {
+        // if amount to drop is 0 or higher than current amount, drop all
+        if ((amount is 0) || (amount >= infoSlot.amount)) infoSlot.SetItem(null);
+        else
+            infoSlot.SubItem((byte)amount);
     }
 }

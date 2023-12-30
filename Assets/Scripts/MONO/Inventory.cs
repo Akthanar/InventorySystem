@@ -20,14 +20,12 @@ public class Inventory : MonoBehaviour
 
 
 
-
-    // clicked item
-    public Item item = null;
-
+    [SerializeField] private ButtonSlot _slotHover;
+    [SerializeField] private string _name;
     // clicked slot
-    public ButtonBehaviour slot = null;
+    public ButtonSlot newSlot { get => _slotHover; set { _slotHover = value; _name = value.transform.parent.name; } }
 
-
+    public byte daggingAmount = 0;
 
 
 
@@ -66,13 +64,13 @@ public class Inventory : MonoBehaviour
 
 
     /// <summary> Array di slot dell'inventario. </summary>
-    public ButtonBehaviour[] inventorySlots;
+    public ButtonSlot[] inventorySlots;
 
     /// <summary> Lista di slot liberi nell'inventario. </summary>
-    public List<ButtonBehaviour> freeInventorySlots;        
+    public List<ButtonSlot> freeInventorySlots;        
 
     /// <summary> Lista di slot non del tutto pieni nell'inventario. </summary>
-    public List<ButtonBehaviour> notFullInventorySlots;
+    public List<ButtonSlot> notFullInventorySlots;
 
 
     public const byte INVENTORY_SIZE = 96;
@@ -110,45 +108,47 @@ public class Inventory : MonoBehaviour
 
 
 
+    // public void MouseOverItem(Item item) { }
+    // public void MouseOutItem() { }
+
+
+
+
     /// <summary> register click to confront with next event </summary>
     /// <param name="slot"> memorize clicked slot </param>
-    public void ClickOnSlot (ButtonBehaviour slot)
+    public void ClickOnSlot (ButtonSlot slot)
     {
+        print("Click on " + slot.transform.parent.name);
+
         // if slot is empty, don't change state and return
         if (slot.isEmpty) return;
-
 
         // memorize current action
         currentAction = EventAction.click;
 
-        this.slot = slot;
+        // ...and clicked slot
+        //this.slot = slot;
     }
 
 
 
     /// <summary> try to drag item from slot </summary>
-    public void TryDragItem()
+    public void TryDragItem(ButtonSlot slot)
     {
         // if not clicking on an item, don't do anything
         if (currentAction == EventAction.none) return;
 
 
-
         // if slot is empty, don't change state and return
-        if (this.slot.isEmpty) return;
-        
+        if (slot.isEmpty) return;
+
 
         // set dragging action
         currentAction = EventAction.drag;
 
 
-        // memorize item
-        this.item = this.slot.item;
-
-        // set icon near mouse cursor
-        MouseFollower.Instance.SetGrabbedItem(this.item);
-
-        print("Drag started from slot: " + slot.name + " with item: " + this.item.name);
+        // set icon on mouse cursor
+        MouseFollower.Instance.SetGrabbedItem(slot.item);
     }
 
 
@@ -159,8 +159,8 @@ public class Inventory : MonoBehaviour
         {
             /* uso l'update per controllare se viene rilasciato il tasto del mouse
              * perchè gli eventi vengono eseguiti prima della Game Logic (quindi dell'update)
-             * quindi se lo stato non è ancora cambiato a questo punto, vuol dire che non
-             * è stato rilasciato il tasto sopra uno slot dell'inventario
+             * perciò se lo stato non è ancora cambiato, a questo punto, vuol dire che non
+             * è stato rilasciato l'item sopra uno slot dell'inventario
             */
             CancelDraggingAction();
         }
@@ -168,78 +168,66 @@ public class Inventory : MonoBehaviour
 
 
 
-    public void TryToPlaceOnSlot(ButtonBehaviour slot)
+    public void ReleaseOnSlot(ButtonSlot old_slot)
     {
-        // if not dragging something don't do anything
-        if (currentAction != EventAction.drag) return;
+        print("Released " + old_slot.transform.parent.name + " on " + newSlot.transform.parent.name);
 
 
-        // check if dropped on the same slot where drag started
-        if (slot == this.slot)
+        switch (currentAction)
         {
-            
-            // non fare niente, fai tornare l'oggetto al suo posto
+            // if mouse not moved since click, open info panel
+            case EventAction.click:
+            {
+                OpenInfoPanel(old_slot.item);
+                
+                currentAction = EventAction.none;
+
+                break;
+            }
 
 
+
+            case EventAction.drag:
+            {
+                // check if dropped on the same slot where drag started
+                if (old_slot.gameObject == newSlot.gameObject)
+                {
+        print("IF " + old_slot.transform.parent.name + " = " + newSlot.transform.parent.name);
+                    // cancel dragging action
+                    CancelDraggingAction();
+                }
+                else if (newSlot.isEmpty)
+                {
+        print("ELSE IF");
+                    // place dragged item in the new slot
+                    newSlot.SetItem(old_slot.item, old_slot.amount);
+
+                    // remove item from old slot
+                    old_slot.SetItem(null);
+                }
+                else // swap items in slots
+                {
+        print("ELSE");
+                    // store new item and amount
+                    Item item = newSlot.item;
+                    byte amount = newSlot.amount;
+
+                    // set dragged item in the new slot
+                    newSlot.SetItem(old_slot.item, old_slot.amount);
+
+                    // set stored item in the old slot
+                    old_slot.SetItem(item, amount);
+                }
+                currentAction = EventAction.none;
+
+                break;
+            }
+
+
+
+            // if not drag or click state, don't do anything
+            default: break;
         }
-        else if (slot.isEmpty)
-        {
-
-
-            // piazza l'oggetto
-
-
-        }
-        else
-        {
-            
-
-            // scambia gli oggetti
-
-
-        }
-
-
-
-
-
-        // check if slot is empty
-        // if (slot.isEmpty)
-        // {
-        //     // if empty, place item in slot
-        //     slot.SetItem(currentDraggedItem);
-        //     // remove item from inventory
-        //     RemoveItem(currentDraggedItem);
-        //     // stop dragging
-        //     StopDragging();
-        // }
-        // else
-        // {
-        //     // if not empty, check if item is stackable
-        //     if (currentDraggedItem.isStackable)
-        //     {
-        //         // if stackable, check if item in slot is the same
-        //         if (slot.item == currentDraggedItem)
-        //         {
-        //             // if same, add item to slot
-        //             slot.AddItem();
-        //             // remove item from inventory
-        //             RemoveItem(currentDraggedItem);
-        //             // stop dragging
-        //             StopDragging();
-        //         }
-        //         else
-        //         {
-        //             // if not same, swap items
-        //             SwapItems(slot);
-        //         }
-        //     }
-        //     else
-        //     {
-        //         // if not stackable, swap items
-        //         SwapItems(slot);
-        //     }
-        // }
     }
 
 
@@ -249,16 +237,8 @@ public class Inventory : MonoBehaviour
         // set dragging to false
         currentAction = EventAction.none;
 
-        // reset slot where drag started
-        // slotWhichDragStarted = null;
-
-        // reset item
-        item = null;
-
-        // hide icon near mouse cursor
+        // hide icon near mouse cursor (no parameter = null)
         MouseFollower.Instance.SetGrabbedItem();
-
-        print("Drag stopped.");
     }
 
 
@@ -270,19 +250,17 @@ public class Inventory : MonoBehaviour
     /// <param name="item">scriptable object of the picked up item</param>
     public void OpenInfoPanel(Item item)
     {
-        if (infoPanel == null) { print("null"); return; }
+        if (infoPanel is null) { print("null"); return; }
 
 
-        infoPanel.SetActive(true);
+        byte rarity = (byte)Random.Range(0, infoFrameColors.Length - 1);
         
+        infoPanel.SetActive(true);
         infoName.text = item.name;
         infoDesc.text = item.desc;
-        
         infoIcon.sprite = item.icon;
-        
-        byte rarity = (byte)Random.Range(0, infoFrameColors.Length - 1);
-        infoBackground.color = infoIconColors[rarity];
         infoFrame.color = infoFrameColors[rarity];
+        infoBackground.color = infoIconColors[rarity];
     }
 
 
@@ -293,21 +271,19 @@ public class Inventory : MonoBehaviour
     {
         print("Adding item: " + item.name + " to inventory.");
 
-
-        // search in the not full slots for the same item before searching for an empty slot
+        // if item can be stacked and there's not full slots...
         if (item.isStackable && notFullInventorySlots.Any())
         {
+            // ...search in the "not full slots" list for the same item
             foreach (var slot in notFullInventorySlots)
             {
                 if (slot.item == item)
                 {
-                    print("Found item: " + item.name + " in inventory, adding to stack.");
-
                     // if found, add (one) item to stack and return
                     slot.AddItem();
 
                     // now check if slot is full and remove from list if it is
-                    if (slot.StackAmount == item.stackLimit)
+                    if (slot.amount == item.stackLimit)
                         notFullInventorySlots.Remove(slot);
 
                     return;
@@ -324,22 +300,8 @@ public class Inventory : MonoBehaviour
                 if (slot.isEmpty == false) continue;
 
                 // if slot is empty, add item and remove slot from list
-                print(slot.name + " is empty, adding item to it.");
-
                 freeInventorySlots.Remove(slot);
                 slot.SetItem(item);
-
-                // if item is stackable and slot amount is not to limit...
-
-                // --------------------------------------------------------------
-                // viene già fatto da ButtonBehaviour.UpdateSlotInInventoryLists:
-                // --------------------------------------------------------------
-
-                // if (item.isStackable && slot.stackAmount < item.stackLimit)
-                // {
-                //     // ...then add it to the not full slots
-                //     notFullInventorySlots.Add(slot);
-                // }
 
                 return;
             }

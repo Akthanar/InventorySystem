@@ -28,7 +28,7 @@ public class ManageButtons : MonoBehaviour
     public bool RefindScripts;
     public bool RefindImages;
 
-    public List<ButtonBehaviour> scripts = new();
+    public List<ButtonSlot> scripts = new();
     public List<Button> buttons = new();
     public List<Image> images = new();
 
@@ -51,9 +51,9 @@ public class ManageButtons : MonoBehaviour
     {
         RefindScripts = false;
         scripts.Clear();
-        foreach (Transform child in Panel) scripts.Add(child.GetChild(0).GetComponent<ButtonBehaviour>());
+        foreach (Transform child in Panel) scripts.Add(child.GetChild(0).GetComponent<ButtonSlot>());
         GameObject.Find("INVENTORY").GetComponent<Inventory>().inventorySlots = scripts.ToArray();
-        foreach (Transform child in Hotbar) scripts.Add(child.GetChild(0).GetComponent<ButtonBehaviour>());
+        foreach (Transform child in Hotbar) scripts.Add(child.GetChild(0).GetComponent<ButtonSlot>());
     }
     void FindImages()
     {

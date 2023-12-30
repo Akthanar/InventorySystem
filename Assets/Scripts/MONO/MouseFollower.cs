@@ -22,7 +22,7 @@ public class MouseFollower : MonoBehaviour//, IPointerMoveHandler
     void Start ()
     {
         // avvisa in caso venisse dimenticato di impostare il mousePointer
-        if (mousePointer == null)
+        if (mousePointer is null)
         {
             Debug.LogWarning("MousePointer non impostato, cerco di impostarlo in automatico");
             mousePointer = GameObject.Find("Mouse").transform;
@@ -57,7 +57,7 @@ public class MouseFollower : MonoBehaviour//, IPointerMoveHandler
     /// <summary> Imposta l'immagine dell'oggetto trascinato, lascia parametri vuoti per nascondere. </summary>
     public void SetGrabbedItem(Item item = null)
     {
-        if (item == null) grabbedItemImage.enabled = false;
+        if (item is null) grabbedItemImage.enabled = false;
         else
         {
             grabbedItemImage.sprite = item.icon;

@@ -36013,6 +36013,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54ea7e74150a28245999a1448b245603, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentAction: 0
+  currentSelectedItem: {fileID: 0}
+  currentSelectedSlot: {fileID: 0}
   enableHotbarInInventory: 1
   hotbarSlots: []
   inventoryOpen: 0

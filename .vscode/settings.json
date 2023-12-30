@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "InventorySystem.sln"
+    "dotnet.defaultSolution": "InventorySystem.sln",
+    "dotnet.preferCSharpExtension": true
 }

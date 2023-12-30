@@ -7,14 +7,15 @@ using UnityEngine.UI;
 using TMPro;
 
 
-public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di click del mouse
-    IPointerDownHandler, IPointerUpHandler,             // eventi di pressione del mouse
-    IPointerEnterHandler, IPointerExitHandler,          // eventi di posizione del mouse
-    ISelectHandler, IDeselectHandler,                   // eventi di selezione dei pulsanti
-    IBeginDragHandler, IDragHandler, IEndDragHandler    // eventi di trascinamento del mouse
+public class ButtonBehaviour : MonoBehaviour, /* IPointerClickHandler, */ // evento di click
+    IPointerDownHandler, IPointerUpHandler,                 // eventi di pressione del mouse
+    IPointerEnterHandler, IPointerExitHandler,              // eventi di posizione del mouse
+    /*ISelectHandler,*/ IDeselectHandler,                   // eventi di selezione dei pulsanti
+    IBeginDragHandler/*, IDragHandler, IEndDragHandler*/    // eventi di trascinamento del mouse
 {
+    
 
-    GameObject child => transform.GetChild(0).gameObject;
+    GameObject Child => transform.GetChild(0).gameObject;
 
 
 
@@ -24,8 +25,8 @@ public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di
     private TextMeshProUGUI textAmount;
 
     
-    public byte slotIndex => (byte)transform.GetSiblingIndex();
-    public byte stackAmount { get; private set; } = 0;
+    public byte SlotIndex => (byte)transform.GetSiblingIndex();
+    public byte StackAmount { get; private set; } = 0;
     
     
     public bool isHotbarSlot { get; private set; } = false;
@@ -50,6 +51,19 @@ public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di
 
 
 
+
+    private void Start ()
+    {
+        TryGetComponent(out rect);
+        Child.TryGetComponent(out icon);
+
+        panelAmount = transform.GetChild(1).gameObject;
+        panelAmount.transform.GetChild(0).TryGetComponent(out textAmount);
+    }
+
+
+
+
     /// <summary> set item in this slot, if not specified, set just one </summary>
     /// <param name="item"> item's scriptable object </param>
     /// <param name="amount"> default = 1 </param>
@@ -59,7 +73,7 @@ public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di
         this.icon.enabled = true;
         this.item = item;
         this.isEmpty = false;
-        this.stackAmount = amount;
+        this.StackAmount = amount;
 
         // at the end, update the inventory lists
         UpdateSlotInInventoryLists();
@@ -82,11 +96,11 @@ public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di
     {
         // change amount, preventing it from going under zero or over stackLimit
 
-        stackAmount = (byte)Mathf.Clamp(stackAmount + amount, 0, item.stackLimit);
+        StackAmount = (byte)Mathf.Clamp(StackAmount + amount, 0, item.stackLimit);
 
         // if there are no items, clear the slot
 
-        if (stackAmount == 0)
+        if (StackAmount == 0)
         {
             this.icon.sprite = null;
             this.icon.enabled = false;
@@ -102,7 +116,7 @@ public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di
 
     void UpdateSlotInInventoryLists()
     {
-        textAmount.text = stackAmount.ToString();
+        textAmount.text = StackAmount.ToString();
 
 
         // if slot is empty, add to free slots and remove from not full slots
@@ -131,97 +145,20 @@ public class ButtonBehaviour : MonoBehaviour, IPointerClickHandler, // evento di
 
 
 
-    public void OnPointerClick (PointerEventData eventData) { } // => Inventory.instance.OpenInfoPanel(item);
-
-
+    
     public void OnPointerDown (PointerEventData eventData) => print("CLICK DOWN");
-    public void OnPointerUp (PointerEventData eventData) => Inventory.instance.OpenInfoPanel(item); //print ("CLICK UP");
-
+    public void OnPointerUp (PointerEventData eventData) => print ("CLICK UP");
+    // Inventory.instance.OpenInfoPanel(item);
+        
 
     public void OnPointerEnter (PointerEventData eventData) => print("ENTER");
     public void OnPointerExit (PointerEventData eventData) => print("EXIT");
 
 
-    public void OnSelect (BaseEventData eventData) =>  print ("SELECT");
+    public void OnBeginDrag (PointerEventData eventData) => Inventory.instance.TryDragItem();
+
+
+
+    //public void OnSelect (BaseEventData eventData) =>  print ("SELECT");
     public void OnDeselect (BaseEventData eventData) => print("DESELECT");
-
-
-    public void OnBeginDrag (PointerEventData eventData) => MouseFollower.Instance.SetGrabbedItem(item);
-    public void OnDrag (PointerEventData eventData) => print("ON DRAG");
-    public void OnEndDrag (PointerEventData eventData) => print("END DRAG");
-
-
-    public void OnClick()
-    {
-        Debug.Log("Button Clicked");
-    }
-
-    public void MouseOver ()
-    {
-        Debug.Log("Mouse over");
-    }
-
-    public void OnMouseExit ()
-    {
-        Debug.Log("MONO: Mouse exit");
-    }
-
-    public void OnMouseEnter ()
-    {
-        Debug.Log("MONO: Mouse enter");
-    }
-    public void MousePush ()
-    {
-        Debug.Log("Mouse down");
-    }
-
-    public void MouseHold ()
-    {
-        Debug.Log("Mouse hold");
-    }
-
-    public void MousePull ()
-    {
-        Debug.Log("Mouse up");
-    }
-
-
-    public void Deselect ()
-    {
-        Debug.Log("Button Deselected");
-    }
-
-
-    private void OnMouseDown ()
-    {
-        Debug.Log("MONO: Mouse down");
-        OnClick();
-    }
-
-    private void OnMouseUp ()
-    {
-        Debug.Log("MONO: Mouse up");
-        MousePull();
-    }
-
-    private void OnMouseOver ()
-    {
-        Debug.Log("MONO: Mouse over");
-        MouseOver();
-    }
-
-
-    private void Start ()
-    {
-        TryGetComponent(out rect);
-        child.TryGetComponent(out icon);
-
-        panelAmount = transform.GetChild(1).gameObject;
-        panelAmount.transform.GetChild(0).TryGetComponent(out textAmount);
-    }
-
-    private void Update ()
-    {
-        
-    }
 }

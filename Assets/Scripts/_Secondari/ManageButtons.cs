@@ -95,8 +95,8 @@ public class ManageButtons : MonoBehaviour
                     for (int i = Panel.childCount; i < Inventory.INVENTORY_SIZE; i++)
                     {
                         GameObject slot = Instantiate(inventorySlotPrefab, Panel);
-                        // write name with 2 cypher
-                        slot.name = "Slot " + (i + 1).ToString(Inventory.INVENTORY_SIZE > 99 ? "000" : "00");
+                        
+                        slot.name = "Slot " + (i + 1).ToString("00");
                     }
                 }
                 else if (Inventory.INVENTORY_SIZE < transform.childCount)

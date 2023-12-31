@@ -13,25 +13,23 @@ public class Inventory : MonoBehaviour
     void Awake () => instance = this;
     public static Inventory instance;
     #endregion
-    
 
+
+#region VARIABLES
+
+    #region OTHER_VARIABLES
 
     public EventAction currentAction = EventAction.none;
 
-
-
-
     // clicked slot
     public ButtonSlot newSlot;
-
-
 
 
     const string USE_BUTTON_NAME = "USE";
     const string EQUIP_BUTTON_NAME = "EQUIP";
     const string REMOVE_BUTTON_NAME = "REMOVE";
 
-
+    #endregion
 
     #region HEADER
 
@@ -42,10 +40,9 @@ public class Inventory : MonoBehaviour
     [Space(10)]
 
 #endregion
-#region HOTBAR
     
-    // public ItemType[] armorSlotsType;
-
+    #region ARMOR
+    
     /// <summary> Array of slots for armor. </summary>
     public ArmorSlot[] armorSlots;
     public ArmorSlot mainHandSlot;
@@ -53,6 +50,7 @@ public class Inventory : MonoBehaviour
 
 
     #endregion
+    
 #region HEADER
 
     [Space(20)]
@@ -61,7 +59,8 @@ public class Inventory : MonoBehaviour
     [Space(10)]
 
 #endregion
-#region SLOTS
+    
+    #region SLOTS
 
     /// <summary> Indica se l'inventario è aperto. </summary>
     public bool inventoryOpen = false;
@@ -80,6 +79,7 @@ public class Inventory : MonoBehaviour
     public const byte INVENTORY_SIZE = 96;
 
     #endregion
+    
 #region HEADER
 
     [Space(20)]
@@ -88,7 +88,8 @@ public class Inventory : MonoBehaviour
     [Space(10)]
 
 #endregion
-#region INFO_PANEL
+    
+    #region INFO_PANEL
 
     // visualized slot
     public ButtonSlot infoSlot;
@@ -120,18 +121,14 @@ public class Inventory : MonoBehaviour
 
     #endregion
 
+#endregion
+
+
     private void Start ()
 	{
 		freeInventorySlots = inventorySlots.ToList();
 		notFullInventorySlots.Remove(freeInventorySlots[1]);
 	}
-
-
-
-
-    // public void MouseOverItem(Item item) { }
-    // public void MouseOutItem() { }
-
 
 
 
@@ -146,6 +143,7 @@ public class Inventory : MonoBehaviour
 
 
 
+    #region CLICK_ON_SLOT
 
     /// <summary> register click to confront with next event </summary>
     /// <param name="slot"> memorize clicked slot </param>
@@ -159,7 +157,9 @@ public class Inventory : MonoBehaviour
         // memorize current action
         currentAction = EventAction.click;
     }
+    #endregion
 
+    #region DRAG_ITEM_ON_SLOT
 
     /// <summary> try to drag item from slot </summary>
     public void TryDragItem(ButtonSlot slot)
@@ -179,8 +179,9 @@ public class Inventory : MonoBehaviour
         // set icon on mouse cursor
         MouseFollower.Instance.SetGrabbedItem(slot.item);
     }
+    #endregion
 
-
+    #region RELEASE_MOUSE_ON_EMPTY_SPACE
     private void Update ()
     {
         if (Input.GetMouseButtonUp(0) && currentAction == EventAction.drag)
@@ -217,8 +218,9 @@ public class Inventory : MonoBehaviour
             }
         }
     }
+    #endregion
 
-
+    #region RELEASE_MOUSE_ON_SLOT
     public void ReleaseOnSlot(ButtonSlot old_slot)
     {
         switch (currentAction)
@@ -280,7 +282,9 @@ public class Inventory : MonoBehaviour
             default: break;
         }
     }
+    #endregion
 
+    #region CANCEL_SELECTION_ON_EMPTY_SPACE
 
     public void CancelDraggingAction()
     {
@@ -290,6 +294,9 @@ public class Inventory : MonoBehaviour
         // hide icon near mouse cursor (no parameter = null)
         MouseFollower.Instance.SetGrabbedItem();
     }
+
+    #endregion
+
 
 
 
@@ -310,6 +317,7 @@ public class Inventory : MonoBehaviour
     }
     #endregion
 
+    #region OPEN_INFO_PANEL
 
     /// <summary> open item information panel in inventory</summary>
     /// <param name="item">scriptable object of the picked up item</param>
@@ -375,9 +383,9 @@ public class Inventory : MonoBehaviour
             buttonUse.interactable = freeInventorySlots.Any();
         }
     }
+    #endregion
 
-
-
+    #region ADD_ITEM_TO_DEBUG
 
     /// <summary> method to call when player pickup an object </summary>
     /// <param name="item">scriptable object of the picked up item</param>
@@ -411,8 +419,9 @@ public class Inventory : MonoBehaviour
             empty_slot.SetItem(item);
         }
     }
+    #endregion
 
-
+    #region DROP_ITEM_FROM_INVENTORY
 
     /// <summary > method to call when player drop an object </summary>
     /// <param name="amount"> default amount 0 (= all)</param>
@@ -430,16 +439,19 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            EditStats(infoArmor.item, false);
-
+            EditStats();
             infoArmor.RemoveItem();
             if (infoPanel.activeSelf) CloseInfoPanel();
         }
     }
 
+    #endregion
+
+    #region USE_EQUIP_REMOVE_ITEM
 
     public void UseItem()
     {
+        #region USE_INVENTORY_ITEM
         // if slot is from inventory (not armor)
         if (infoSlot != null)
         {
@@ -486,6 +498,7 @@ public class Inventory : MonoBehaviour
                     }
                     else offHandSlot.SwapItem(infoSlot);
 
+                    EditStats(infoSlot.item);
                     CloseInfoPanel();
 
                     break;
@@ -500,6 +513,7 @@ public class Inventory : MonoBehaviour
                     }
                     else mainHandSlot.SwapItem(infoSlot);
 
+                    EditStats(infoSlot.item);
                     CloseInfoPanel();
 
                     break;
@@ -508,6 +522,8 @@ public class Inventory : MonoBehaviour
                 default: break;
             }
         }
+        #endregion
+        #region USE_HOTBAR_ITEM
 
         // if is armor slot and find empty slot
         else if (TryFindEmptySlot(out ButtonSlot slot))
@@ -515,17 +531,19 @@ public class Inventory : MonoBehaviour
             // move armor item in inventory slot
             slot.SetItem(infoArmor.item);
 
-            // update stats
-            EditStats(infoArmor.item, false);
-
             // remove item from armor slot
             infoArmor.RemoveItem();
 
+            // update stats
+            EditStats();
+
             CloseInfoPanel();
         }
+        #endregion
     }
+    #endregion
 
-
+    #region SEARCH_EMPTY_SLOT
 
     private bool TryFindEmptySlot(out ButtonSlot value)
     {
@@ -560,27 +578,68 @@ public class Inventory : MonoBehaviour
         value = null;
         return false;
     }
+    #endregion
 
+    #region CHANGE_FAKE_PLAYER_STATS
 
-    private void EditStats(Item item, bool equipped = true)
+    /// <summary> Edit stats when an item is equipped or removed or used. </summary>
+    /// <param name="item"> item from which to take the modifiers. Default null </param>
+    private void EditStats (Item item = null)
     {
         const float CONVERT_TO_PERCENTAGE = 0.01f;
-
-        var health = healthBar.fillAmount + (item.healthModifier * CONVERT_TO_PERCENTAGE);
-        healthBar.fillAmount = Mathf.Clamp01(health);
-
-        if (healthBar.fillAmount == 0) SceneManager.LoadScene(1);
+        const byte INITIAL_ATTACK_SPEED = 255;
+        const byte INITIAL_ATTACK_DAMAGE = 10;
 
 
-            var shield = shieldBar.fillAmount + ((item.resistanceModifier * CONVERT_TO_PERCENTAGE) * (equipped ? +1 : -1));
-        shieldBar.fillAmount = Mathf.Clamp01(shield);
+
+        if (item != null)
+        {
+            var health = healthBar.fillAmount + (item.healthModifier * CONVERT_TO_PERCENTAGE);
+            healthBar.fillAmount = Mathf.Clamp01(health);
+
+            if (healthBar.fillAmount == 0) SceneManager.LoadScene(1);
+        }
 
 
-        /*
-         * se l'oggetto è equipaggiabile ed equipped è falso, rimuovi i modificatori
-         * se è true, aggiungi i modificatori
-         *
-         *  se non è equipaggiabile, ignora equipped
-         */
+
+        int armor = 0;
+        int attack_speed = 0;
+        int damage = 0;
+
+
+        // sum all modifiers in armor slots and offhand slot
+        for (int i = 0; i < armorSlots.Length; i++)
+        {
+            if (armorSlots[i].isEmpty) continue;
+
+            armor += armorSlots[i].item.resistanceModifier;
+            attack_speed += armorSlots[i].item.attackSpeedModifier;
+        }
+
+        if (mainHandSlot.isEmpty is false)
+        {
+            armor += mainHandSlot.item.resistanceModifier;
+            attack_speed += mainHandSlot.item.attackSpeedModifier;
+            damage += mainHandSlot.item.damageModifier;
+        }
+
+        if (offHandSlot.isEmpty is false)
+        {
+            armor += offHandSlot.item.resistanceModifier;
+            attack_speed += offHandSlot.item.attackSpeedModifier;
+            damage += offHandSlot.item.damageModifier;
+        }
+
+
+
+        // convert to percentage and clamp between 0 and 1 and fill the bar
+        shieldBar.fillAmount = Mathf.Clamp01(armor * CONVERT_TO_PERCENTAGE);
+
+        // clamp between 1 and 100 and show on UI
+        attackSpeed.text = Mathf.Clamp(INITIAL_ATTACK_SPEED + attack_speed, 1, 255).ToString();
+
+        // clamp between 1 and 255 and show on UI
+        attackDamage.text = Mathf.Clamp(INITIAL_ATTACK_DAMAGE + damage, 1, 255).ToString();
     }
+    #endregion
 }

@@ -125,8 +125,6 @@ public class ButtonSlot : MonoBehaviour, IBeginDragHandler,
             if (Inventory.instance.freeInventorySlots.Contains(this) is false)
             { Inventory.instance.freeInventorySlots.Add(this);   }
             
-            //panelAmount.SetActive(false);
-
             Inventory.instance.notFullInventorySlots.Remove(this);  // no need to check if it's in the list
         }
 
@@ -156,15 +154,11 @@ public class ButtonSlot : MonoBehaviour, IBeginDragHandler,
     public void OnPointerUp (PointerEventData eventData) => Inventory.instance.ReleaseOnSlot(this);
 
 
-    // OnDrag è necessario per far funzionare OnBeginDrag
-    public void OnDrag (PointerEventData eventData) { }// => print("drag");
+    public void OnDrag (PointerEventData eventData) {}
     public void OnBeginDrag (PointerEventData eventData) => Inventory.instance.TryDragItem(this);
 
 
 
     public void OnPointerEnter (PointerEventData eventData) => Inventory.instance.newSlot = this;
     public void OnPointerExit (PointerEventData eventData) => Inventory.instance.newSlot = null;
-
-    //public void OnSelect (BaseEventData eventData) =>  print ("SELECT");
-    //public void OnDeselect (BaseEventData eventData) => print("DESELECT");
 }

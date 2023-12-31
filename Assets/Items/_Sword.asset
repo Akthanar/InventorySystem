@@ -10,20 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f048428d218604b46a2d8866cfb16362, type: 3}
-  m_Name: _MagicWand
+  m_Name: _Sword
   m_EditorClassIdentifier: 
-  name: Magic Wand
-  desc: Contiene una piuma di pollo
-  icon: {fileID: 21300000, guid: 0fef53bceedb4104c9b634fa51cc37bd, type: 3}
+  name: Sword
+  desc: "Aumenta attacco, riduce leggermente velocit\xE0"
+  icon: {fileID: 21300000, guid: 82bb24d86aedf1143b78764e6149956c, type: 3}
   type: 4
   twoHandedWeapon: 0
   stackLimit: 0
   healthModifier: 0
-  manaModifier: 0
-  motionSpeedModifier: 0
-  damageModifier: 0
-  attackSpeedModifier: 0
-  attackModifier: 0
-  objectDurability: 0
-  effectDuration: 0
+  resistanceModifier: 0
+  damageModifier: 20
+  attackSpeedModifier: -10
   itemWeight: 0

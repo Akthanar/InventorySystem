@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f048428d218604b46a2d8866cfb16362, type: 3}
-  m_Name: _Helmet
+  m_Name: _DamagePotion
   m_EditorClassIdentifier: 
-  name: Helmet
-  desc: 
-  icon: {fileID: 21300000, guid: f3f9ce103e55dcb42ab72ffdc063d588, type: 3}
-  type: 1
+  name: Pozione di danno
+  desc: -10 HP
+  icon: {fileID: 21300000, guid: b0cd37d41eea7834d94dcdc8959f2c55, type: 3}
+  type: 0
   twoHandedWeapon: 0
-  stackLimit: 0
-  healthModifier: 0
-  resistanceModifier: 5
+  stackLimit: 16
+  healthModifier: -10
+  resistanceModifier: 0
   damageModifier: 0
-  attackSpeedModifier: -5
+  attackSpeedModifier: 0
   itemWeight: 0

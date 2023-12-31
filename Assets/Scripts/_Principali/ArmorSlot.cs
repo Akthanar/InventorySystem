@@ -4,8 +4,7 @@ using UnityEngine.EventSystems;
 
 
 
-public class ArmorSlot : MonoBehaviour, IPointerDownHandler//, IPointerUpHandler
-//ISelectHandler , IDragHandler, IPointerEnterHandler, IPointerExitHandler
+public class ArmorSlot : MonoBehaviour, IPointerDownHandler
 {
 
 
@@ -16,37 +15,29 @@ public class ArmorSlot : MonoBehaviour, IPointerDownHandler//, IPointerUpHandler
         Inventory.instance.infoArmor = this;
         Inventory.instance.OpenInfoPanel(item, false);
     }
-    // public void OnPointerUp (PointerEventData eventData) => Inventory.instance.ReleaseOnSlot(this);
-
-     
-    // public void OnSelect (BaseEventData eventData) =>  print ("SELECT");
 
 
 
-    private Button button;
 
+    public enum SlotType { mainHand, offHand, armor } public SlotType slotType;
 
-    public enum SlotType { mainHand, offHand, armor }
-    public SlotType slotType;
-
-
+    public Image itemIcon { get; private set;}
+    public Image typeIcon { get; private set; }
     public Item item { get; private set; }
 
-
-    [SerializeField] ItemType itemType;
-    [SerializeField] Image itemIcon;
-    public Image typeIcon;
-
-
+    
     public bool isEmpty => item == null;
-    [SerializeField] bool hasTwoHandedWeapon = false;
+    private bool hasTwoHandedWeapon = false;
+    [SerializeField] private Button button;
 
 
-    void Start()
+
+    void Start ()
     {
         TryGetComponent(out button);
 
-        // itemType = item.type;
+        typeIcon = transform.GetChild(0).GetComponent<Image>();
+        itemIcon = transform.GetChild(1).GetComponent<Image>();
     }
 
 
@@ -54,7 +45,6 @@ public class ArmorSlot : MonoBehaviour, IPointerDownHandler//, IPointerUpHandler
     {
         if (item == null) RemoveItem();
         
-
         this.item = item;
         itemIcon.sprite = item.icon;
         button.interactable = true;
@@ -69,7 +59,7 @@ public class ArmorSlot : MonoBehaviour, IPointerDownHandler//, IPointerUpHandler
             hasTwoHandedWeapon = true;
             Inventory.instance.offHandSlot.typeIcon.color = Color.red;
         }
-        else UnlockSlot2();
+        else UnlockSecondSlot();
     }
 
 
@@ -82,7 +72,7 @@ public class ArmorSlot : MonoBehaviour, IPointerDownHandler//, IPointerUpHandler
         button.interactable = false;
         item = null;
 
-        if (hasTwoHandedWeapon) UnlockSlot2();
+        if (hasTwoHandedWeapon) UnlockSecondSlot();
     }
 
 
@@ -103,17 +93,9 @@ public class ArmorSlot : MonoBehaviour, IPointerDownHandler//, IPointerUpHandler
 
 
 
-    private void UnlockSlot2()
+    private void UnlockSecondSlot()
     {
-        print("unlock slot 2");
         hasTwoHandedWeapon = false;
         Inventory.instance.offHandSlot.typeIcon.color = Color.black;
     }
-
-
-
-
-    // quando il pulsante viene cliccato passa il valore a inventory per l'info panel
-
-    // quando apri pannello passa (item e FALSE)
 }

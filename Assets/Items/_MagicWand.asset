@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f048428d218604b46a2d8866cfb16362, type: 3}
-  m_Name: _Sword
+  m_Name: _MagicWand
   m_EditorClassIdentifier: 
-  name: Sword
-  desc: Questa spada fa CTRL+X
-  icon: {fileID: 21300000, guid: 82bb24d86aedf1143b78764e6149956c, type: 3}
+  name: Magic Wand
+  desc: Aumenta leggermente l'attacco
+  icon: {fileID: 21300000, guid: 0fef53bceedb4104c9b634fa51cc37bd, type: 3}
   type: 4
   twoHandedWeapon: 0
   stackLimit: 0
   healthModifier: 0
   resistanceModifier: 0
-  damageModifier: 20
-  attackSpeedModifier: -20
+  damageModifier: 5
+  attackSpeedModifier: 0
   itemWeight: 0

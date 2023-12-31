@@ -1,14 +1,10 @@
-using UnityEngine;
-using UnityEditor;
-using System.Linq;
 using UnityEngine.UI;
+using UnityEngine;
+using System.Linq;
 
 
 
-
-
-
-namespace Akthanar.EditorTool
+namespace UnityEditor
 {
     // --------------------
     using MAKE = GUILayout;
@@ -31,9 +27,6 @@ namespace Akthanar.EditorTool
 
         void OnEnable () => load ??= AssetDatabase.LoadAssetAtPath<EditorScriptMemory>(STORAGE_PATH);
 
-        // AssetDatabase.SaveAssets();
-        // AssetDatabase.Refresh();
-
 
         #region CREATE_PANEL
         [MenuItem(MENU_PATH)]
@@ -42,17 +35,7 @@ namespace Akthanar.EditorTool
 
 
 
-        // void Update() { EditorApplication.update += RepaintEveryFrame; }
 
-        // void RepaintEveryFrame() { Repaint(); }  // chiama questo dall'update
-        // void OnInspectorUpdate() { Repaint(); }  // quando modifichi l'inspector
-        // void OnHierarchyChange() { Repaint(); }  // quando modifichi la hierarchy
-        // void OnSelectionChange() { Repaint(); }  // quando cambi oggetto selezionato
-
-
-        // eseguito quando si muove il mouse sulla finestra
-        // o quando viene chiamato il metodo Repaint()
-        // ------------------------------------------------
         private void OnGUI()
         {
             MAKE.Space(20);
@@ -87,7 +70,6 @@ namespace Akthanar.EditorTool
             if (MAKE.Button("Assign values to armor slots"))
             {
                 foreach (var item in inv.armorSlots) SetSerializedValue(item);
-                
                 SetSerializedValue(inv.mainHandSlot);
                 SetSerializedValue(inv.offHandSlot);
             }
@@ -103,18 +85,12 @@ namespace Akthanar.EditorTool
 
         private void SetSerializedValue(ArmorSlot value)
         {
-            // serializza item
             SerializedObject serializedItem = new(value);
-
             serializedItem.Update();
-
-            // serializza itemIcon e typeIcon
             SerializedProperty typeIcon = serializedItem.FindProperty("typeIcon");
             SerializedProperty itemIcon = serializedItem.FindProperty("itemIcon");
-
             typeIcon.objectReferenceValue = value.transform.GetChild(0).GetComponent<Image>();
             itemIcon.objectReferenceValue = value.transform.GetChild(1).GetComponent<Image>();
-
             serializedItem.ApplyModifiedProperties();
         }
     }

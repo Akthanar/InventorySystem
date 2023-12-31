@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: _Wood
   m_EditorClassIdentifier: 
   name: Wood
-  desc: 
+  desc: Ti permette di costruire case, solo se compri il DLC
   icon: {fileID: 21300000, guid: cf386cfc022004e43ab6a5bf50c4283e, type: 3}
   type: 2
   twoHandedWeapon: 0

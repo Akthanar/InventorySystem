@@ -6,7 +6,7 @@ using TMPro;
 
 public class ButtonSlot : MonoBehaviour, IBeginDragHandler,
     IPointerDownHandler, IPointerUpHandler, IDragHandler,
-    IPointerEnterHandler//, IPointerExitHandler
+    IPointerEnterHandler, IPointerExitHandler
 {
     
     GameObject Child => transform.GetChild(0).gameObject;
@@ -142,6 +142,9 @@ public class ButtonSlot : MonoBehaviour, IBeginDragHandler,
         }
         
         panelAmount.SetActive(amount > 1);
+
+
+        Inventory.instance.ReorderListsInHierarchyOrder();
     }
 
 
@@ -160,7 +163,7 @@ public class ButtonSlot : MonoBehaviour, IBeginDragHandler,
 
 
     public void OnPointerEnter (PointerEventData eventData) => Inventory.instance.newSlot = this;
-    //public void OnPointerExit (PointerEventData eventData) => print(transform.parent.name);
+    public void OnPointerExit (PointerEventData eventData) => Inventory.instance.newSlot = null;
 
     //public void OnSelect (BaseEventData eventData) =>  print ("SELECT");
     //public void OnDeselect (BaseEventData eventData) => print("DESELECT");

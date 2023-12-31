@@ -3,8 +3,8 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 
 public class Inventory : MonoBehaviour
@@ -23,13 +23,17 @@ public class Inventory : MonoBehaviour
 
     // clicked slot
     public ButtonSlot newSlot;
-    // visualized slot
-    public ButtonSlot infoSlot;
 
 
 
 
-#region HEADER
+    const string USE_BUTTON_NAME = "USE";
+    const string EQUIP_BUTTON_NAME = "EQUIP";
+    const string REMOVE_BUTTON_NAME = "REMOVE";
+
+
+
+    #region HEADER
 
     [Space(40)]
 
@@ -39,14 +43,14 @@ public class Inventory : MonoBehaviour
 
 #endregion
 #region HOTBAR
-
-    /// <summary> Indica se la hotbar è abilitata. </summary>
-    public bool enableHotbarInInventory = true;
     
-    /// <summary> Array di slot della hotbar. </summary>
-    public GameObject[] hotbarSlots;
+    // public ItemType[] armorSlotsType;
 
-    public const byte HOTBAR_SIZE = 10;
+    /// <summary> Array of slots for armor. </summary>
+    public ArmorSlot[] armorSlots;
+    public ArmorSlot mainHandSlot;
+    public ArmorSlot offHandSlot;
+
 
     #endregion
 #region HEADER
@@ -86,18 +90,35 @@ public class Inventory : MonoBehaviour
 #endregion
 #region INFO_PANEL
 
+    // visualized slot
+    public ButtonSlot infoSlot;
+    public ArmorSlot infoArmor;
+
+    [Space(10)]
     [SerializeField] private GameObject infoPanel;
+    [SerializeField] private Button buttonUse;
+    [Space(10)]
+    [SerializeField] private TextMeshProUGUI useButtonText;
     [SerializeField] private TextMeshProUGUI infoName;
     [SerializeField] private TextMeshProUGUI infoDesc;
+    [Space(10)]
     [SerializeField] private Image infoIcon;
     [SerializeField] private Image infoBackground;
     [SerializeField] private Image infoFrame;
     [Space(10)]
     [SerializeField] private Color[] infoIconColors;
     [SerializeField] private Color[] infoFrameColors;
-    
-#endregion
-    
+
+    #endregion
+
+    #region STATS_VALUES
+
+    [SerializeField] private Image healthBar;
+    [SerializeField] private Image shieldBar;
+    [SerializeField] private TextMeshProUGUI attackSpeed;
+    [SerializeField] private TextMeshProUGUI attackDamage;
+
+    #endregion
 
     private void Start ()
 	{
@@ -110,6 +131,18 @@ public class Inventory : MonoBehaviour
 
     // public void MouseOverItem(Item item) { }
     // public void MouseOutItem() { }
+
+
+
+
+    public void ReorderListsInHierarchyOrder()
+    {
+        // reoreder freeInventorySlots list following hierarchy order
+        freeInventorySlots = freeInventorySlots.OrderBy(x => x.transform.parent.GetSiblingIndex()).ToList();
+
+        // reoreder notFullInventorySlots list following hierarchy order
+        notFullInventorySlots = notFullInventorySlots.OrderBy(x => x.transform.parent.GetSiblingIndex()).ToList();
+    }
 
 
 
@@ -159,14 +192,35 @@ public class Inventory : MonoBehaviour
             */
             CancelDraggingAction();
         }
+        if (infoPanel.activeSelf)
+        {
+            bool is_armor = infoArmor != null;
+
+
+            if (Input.GetKeyDown(KeyCode.Escape)) CloseInfoPanel();
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                DropItem(1);
+                if (is_armor) CloseInfoPanel();
+                else if (infoSlot.amount == 0) CloseInfoPanel();
+            }
+            if (Input.GetKeyDown(KeyCode.Delete))
+            {
+                DropItem(0);
+                CloseInfoPanel();
+            }
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                if (buttonUse.interactable is false) return;
+
+                UseItem();
+            }
+        }
     }
 
 
     public void ReleaseOnSlot(ButtonSlot old_slot)
     {
-        print("Released " + old_slot.transform.parent.name + " on " + newSlot.transform.parent.name);
-
-
         switch (currentAction)
         {
             // if mouse not moved since click, open info panel
@@ -189,11 +243,12 @@ public class Inventory : MonoBehaviour
             case EventAction.drag:
             {
                 // check if dropped on the same slot where drag started
-                if (old_slot.gameObject == newSlot.gameObject)
+                if ((newSlot == null) || (old_slot.gameObject == newSlot.gameObject))
                 {
                     // cancel dragging action
                     CancelDraggingAction();
                 }
+                // check if dropped on an empty slot
                 else if (newSlot.isEmpty)
                 {
                     // place dragged item in the new slot
@@ -238,32 +293,96 @@ public class Inventory : MonoBehaviour
 
 
 
+    #region CLOSE_INFO_PANEL
 
+    // only called by buttons
+    public void CloseInfoPanel()
+    {
+        StartCoroutine(CleanReferences());
+        infoPanel.SetActive(false);
+    }
+    IEnumerator CleanReferences()
+    {
+        // wait for the end of the frame to avoid null references
+        yield return null;
+        infoArmor = null;
+        infoSlot = null;
+    }
+    #endregion
 
 
     /// <summary> open item information panel in inventory</summary>
     /// <param name="item">scriptable object of the picked up item</param>
-    public void OpenInfoPanel(Item item)
+    public void OpenInfoPanel(Item item, bool is_inventory_slot = true)
     {
-        if (infoPanel is null) { print("null"); return; }
-
+        if (infoPanel == null) { print("null"); return; }
 
         byte rarity = (byte)Random.Range(0, infoFrameColors.Length - 1);
-        
+
+
         infoPanel.SetActive(true);
         infoName.text = item.name;
         infoDesc.text = item.desc;
         infoIcon.sprite = item.icon;
         infoFrame.color = infoFrameColors[rarity];
         infoBackground.color = infoIconColors[rarity];
+
+
+        if (is_inventory_slot)
+        {
+            // change button text 
+            useButtonText.text = (item.type == ItemType.Useless) ? "OK" :
+                (item.type == ItemType.Consumable) ?
+                USE_BUTTON_NAME : EQUIP_BUTTON_NAME;
+
+
+            // if item is a weapon and is two handed...
+            if (item.type == ItemType.MainHand && item.twoHandedWeapon)
+            {
+                // ...and shield slot is occupied
+                if (offHandSlot.isEmpty is not true)
+                {
+                    // lock button equip
+                    buttonUse.interactable = false;
+                }
+            }
+            // if item is a shield
+            else if (item.type == ItemType.OffHand)
+            {
+                // ...and main hand slot is occupied by a two handed weapon
+                if (mainHandSlot.isEmpty is not true && mainHandSlot.item.twoHandedWeapon)
+                {
+                    // lock button equip
+                    buttonUse.interactable = false;
+                }
+            }
+            // check if there's an armor slot free
+            else if (item.type is ItemType.Equipable && armorSlots.Any(x => x.isEmpty) is false)
+            {
+                // lock button equip
+                buttonUse.interactable = false;
+            }
+            // in any other case, unlock use/equip button
+            else buttonUse.interactable = true;
+        }
+        else
+        {
+            // change button text 
+            useButtonText.text = REMOVE_BUTTON_NAME;
+
+            // if free slot unlock button
+            // (inventory item are not stackable, no need to check semi-full list)
+            buttonUse.interactable = freeInventorySlots.Any();
+        }
     }
+
+
 
 
     /// <summary> method to call when player pickup an object </summary>
     /// <param name="item">scriptable object of the picked up item</param>
     public void AddItem (Item item)
     {
-        print("Adding item: " + item.name + " to inventory.");
 
         // if item can be stacked and there's not full slots...
         if (item.isStackable && notFullInventorySlots.Any())
@@ -284,32 +403,184 @@ public class Inventory : MonoBehaviour
                 }
             }
         }
-        // if there's empty slots
-        if (freeInventorySlots.Any())
+
+
+        // if there's empty slots set item there
+        if (TryFindEmptySlot(out ButtonSlot empty_slot))
         {
-            // search for an empty slot to add the item
-            foreach (var slot in inventorySlots)
-            {
-                // if slot is not empty, skip
-                if (slot.isEmpty == false) continue;
-
-                // if slot is empty, add item and remove slot from list
-                freeInventorySlots.Remove(slot);
-                slot.SetItem(item);
-
-                return;
-            }
+            empty_slot.SetItem(item);
         }
     }
+
 
 
     /// <summary > method to call when player drop an object </summary>
     /// <param name="amount"> default amount 0 (= all)</param>
     public void DropItem(int amount = 0)
     {
-        // if amount to drop is 0 or higher than current amount, drop all
-        if ((amount is 0) || (amount >= infoSlot.amount)) infoSlot.SetItem(null);
+        if (infoSlot != null)
+        {
+            // if amount to drop is 0 or higher than current amount, drop all
+            if ((amount is 0) || (amount >= infoSlot.amount))
+            {
+                infoSlot.SetItem(null);
+                if (infoPanel.activeSelf) CloseInfoPanel();
+            }
+            else infoSlot.SubItem((byte)amount);
+        }
         else
-            infoSlot.SubItem((byte)amount);
+        {
+            EditStats(infoArmor.item, false);
+
+            infoArmor.RemoveItem();
+            if (infoPanel.activeSelf) CloseInfoPanel();
+        }
+    }
+
+
+    public void UseItem()
+    {
+        // if slot is from inventory (not armor)
+        if (infoSlot != null)
+        {
+            switch (infoSlot.item.type)
+            {
+                case ItemType.Consumable:
+                {
+                    // if item is consumable, use it
+                    EditStats(infoSlot.item);
+                 
+                    // remove item from inventory
+                    infoSlot.SubItem();
+
+                    if (infoSlot.amount == 0) CloseInfoPanel();
+
+                    break;
+                }
+                
+                case ItemType.Equipable: // place item in armor slot
+                {
+                    // search for empty armor slot
+                    if (TryFindEmptySlot(out ArmorSlot slot))
+                    {
+                        // move armor item in inventory slot
+                        slot.SetItem(infoSlot.item);
+                        
+                        // update stats
+                        EditStats(infoSlot.item);
+
+                        // remove item from inventory
+                        infoSlot.SetItem(null);
+
+                        CloseInfoPanel();
+                    }
+                    break;
+                }
+                
+                case ItemType.OffHand:  // place item in shield slot
+                {
+                    if (offHandSlot.isEmpty)
+                    {
+                        offHandSlot.SetItem(infoSlot.item);
+                        infoSlot.SetItem(null);
+                    }
+                    else offHandSlot.SwapItem(infoSlot);
+
+                    CloseInfoPanel();
+
+                    break;
+                }
+
+                case ItemType.MainHand: // place item in weapon slot
+                {
+                    if (mainHandSlot.isEmpty)
+                    {
+                        mainHandSlot.SetItem(infoSlot.item);
+                        infoSlot.SetItem(null);
+                    }
+                    else mainHandSlot.SwapItem(infoSlot);
+
+                    CloseInfoPanel();
+
+                    break;
+                }
+
+                default: break;
+            }
+        }
+
+        // if is armor slot and find empty slot
+        else if (TryFindEmptySlot(out ButtonSlot slot))
+        {
+            // move armor item in inventory slot
+            slot.SetItem(infoArmor.item);
+
+            // update stats
+            EditStats(infoArmor.item, false);
+
+            // remove item from armor slot
+            infoArmor.RemoveItem();
+
+            CloseInfoPanel();
+        }
+    }
+
+
+
+    private bool TryFindEmptySlot(out ButtonSlot value)
+    {
+        if (freeInventorySlots.Any())
+        {
+            // save free slot reference
+            value = freeInventorySlots[0];
+
+            // remove from list
+            freeInventorySlots.Remove(value);
+
+            return true;
+        }
+        else
+        {
+            value = null;
+            return false;
+        }
+    }
+    private bool TryFindEmptySlot (out ArmorSlot value)
+    {
+        // search for empty armor slot
+        foreach (var slot in armorSlots)
+        {
+            // if slot is not empty, skip
+            if (slot.isEmpty is false) continue;
+
+            value = slot;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+
+    private void EditStats(Item item, bool equipped = true)
+    {
+        const float CONVERT_TO_PERCENTAGE = 0.01f;
+
+        var health = healthBar.fillAmount + (item.healthModifier * CONVERT_TO_PERCENTAGE);
+        healthBar.fillAmount = Mathf.Clamp01(health);
+
+        if (healthBar.fillAmount == 0) SceneManager.LoadScene(1);
+
+
+            var shield = shieldBar.fillAmount + ((item.resistanceModifier * CONVERT_TO_PERCENTAGE) * (equipped ? +1 : -1));
+        shieldBar.fillAmount = Mathf.Clamp01(shield);
+
+
+        /*
+         * se l'oggetto è equipaggiabile ed equipped è falso, rimuovi i modificatori
+         * se è true, aggiungi i modificatori
+         *
+         *  se non è equipaggiabile, ignora equipped
+         */
     }
 }

@@ -2,5 +2,6 @@
 	Consumable,
 	Equipable,
 	Useless,
-	Other
+	OffHand,
+	MainHand
 }

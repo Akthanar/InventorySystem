@@ -15,15 +15,11 @@ MonoBehaviour:
   name: Sword
   desc: Questa spada fa CTRL+X
   icon: {fileID: 21300000, guid: 82bb24d86aedf1143b78764e6149956c, type: 3}
-  type: 1
+  type: 4
+  twoHandedWeapon: 0
   stackLimit: 0
-  isEquipped: 0
   healthModifier: 0
-  manaModifier: 0
-  motionSpeedModifier: 0
-  damageModifier: 0
-  attackSpeedModifier: 0
-  attackModifier: 0
-  objectDurability: 0
-  effectDuration: 0
+  resistanceModifier: 0
+  damageModifier: 20
+  attackSpeedModifier: -20
   itemWeight: 0

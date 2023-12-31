@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f048428d218604b46a2d8866cfb16362, type: 3}
-  m_Name: _Shield
+  m_Name: _Wood
   m_EditorClassIdentifier: 
-  name: Shield
-  desc: Non quello della marvel
-  icon: {fileID: 21300000, guid: 0a5c7eef8da81b246a53d90a2682e4a9, type: 3}
-  type: 3
+  name: Wood
+  desc: 
+  icon: {fileID: 21300000, guid: cf386cfc022004e43ab6a5bf50c4283e, type: 3}
+  type: 2
   twoHandedWeapon: 0
-  stackLimit: 0
+  stackLimit: 64
   healthModifier: 0
-  resistanceModifier: 20
+  resistanceModifier: 0
   damageModifier: 0
-  attackSpeedModifier: -20
-  itemWeight: 20
+  attackSpeedModifier: 0
+  itemWeight: 10
